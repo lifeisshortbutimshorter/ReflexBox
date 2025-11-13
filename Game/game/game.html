@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>🎯 Reflex The Box – Enhanced Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #22223b, #393e5a, #283e51);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+        h1 {
+            margin-top: 32px;
+            font-size: 3rem;
+            color: #00ffe0;
+            text-shadow: 0 0 15px #00ffe0;
+            letter-spacing: 2px;
+            font-family: 'Poppins', sans-serif;
+        }
+        #gameArea {
+            margin-top: 30px;
+            width: 85vw;
+            max-width: 900px;
+            height: 65vh;
+            background: radial-gradient(circle at center, #25223b, #191927);
+            border-radius: 24px;
+            box-shadow: 0 0 30px #00ffe0cc;
+            position: relative;
+            overflow: hidden;
+            border: 5px solid #00ffe0;
+        }
+        #scoreBoard {
+            margin-top: 22px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-shadow: 0 0 8px #00ffe0aa;
+            user-select: none;
+        }
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+        }
+        .user-form {
+            margin-top: 18px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(44,83,100,0.18);
+            border-radius: 12px;
+            padding: 10px 16px;
+        }
+        .user-form label {
+            font-size: 1.1rem;
+            color: #00ffe0;
+            font-weight: 600;
+        }
+        .user-form input {
+            font-size: 1.1rem;
+            padding: 7px 17px;
+            border-radius: 8px;
+            border: none;
+            background: #f8f8ff;
+            color: #283e51;
+            font-weight: 700;
+            box-shadow: 0 2px 8px #00ffe055;
+            min-width: 90px;
+        }
+        .user-form input:focus {
+            outline: 2px solid #00ffe0;
+        }
+        button {
+            background: linear-gradient(145deg, #00ffe0, #00bfa5);
+            color: #000;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 26px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 5px 15px #00bfa588;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        button:hover:not(:disabled) {
+            background: linear-gradient(145deg, #00bfa5, #00876d);
+            box-shadow: 0 8px 25px #00876dcc;
+            color: #fff;
+        }
+        button:disabled {
+            background: #005f5f;
+            cursor: not-allowed;
+            box-shadow: none;
+            color: #444;
+        }
+        select {
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-weight: 700;
+            border: none;
+            background: #00ffe0;
+            color: #000;
+            font-size: 1rem;
+            box-shadow: 0 5px 15px #00bfa588;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        select:hover:not(:disabled) {
+            background: #00bfa5;
+            color: #fff;
+            box-shadow: 0 8px 25px #00876dcc;
+        }
+        select:disabled {
+            background: #005f5f;
+            cursor: not-allowed;
+            color: #444;
+            box-shadow: none;
+        }
+        .time-flash {
+            animation: flashRed 0.8s ease forwards;
+        }
+        @keyframes flashRed {
+            0% { color: #00ffe0;}
+            50% { color: #ff3b3b; text-shadow: 0 0 10px #ff3b3b;}
+            100% { color: #00ffe0; text-shadow: 0 0 8px #00ffe0;}
+        }
+        .box {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #ff416c, #ff4b2b);
+            border-radius: 15px;
+            box-shadow: 0 0 25px #ff416c;
+            cursor: pointer;
+            animation: pulse 1.5s infinite ease-in-out;
+            transition: transform 0.2s ease;
+        }
+        .box.gold {
+            background: linear-gradient(145deg, #ffe066, #ffd700);
+            box-shadow: 0 0 25px #ffe066;
+            border: 2px solid #fffbe6;
+        }
+        .box.bomb {
+            background: linear-gradient(145deg, #333, #444);
+            box-shadow: 0 0 25px #444;
+            border: 2px solid #ff3b3b;
+        }
+        .box:hover {
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 10px #ff4b2b);
+        }
+        .box.gold:hover {
+            filter: drop-shadow(0 0 15px #ffd700);
+        }
+        .box.bomb:hover {
+            filter: drop-shadow(0 0 15px #ff3b3b);
+        }
+        .explosion {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            pointer-events: none;
+            background: radial-gradient(circle, #ff002d 40%, #ff416c 60%, transparent 80%);
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: boom 0.5s linear forwards;
+            z-index: 10;
+        }
+        .explosion.gold {
+            background: radial-gradient(circle, #ffd700 40%, #fffbe6 70%, transparent 100%);
+        }
+        .explosion.bomb {
+            background: radial-gradient(circle, #444 40%, #ff3b3b 70%, transparent 100%);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1);}
+            50% { transform: scale(1.1);}
+        }
+        @keyframes boom {
+            0% { transform: scale(0.5); opacity: 1;}
+            80% { transform: scale(1.5); opacity: 0.7;}
+            100% { transform: scale(2); opacity: 0;}
+        }
+        /* Popup จบเกม */
+        #endGamePopup {
+            position: fixed;
+            left: 0; top: 0; width: 100vw; height: 100vh;
+            background: rgba(44,83,100,0.75);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        #endGameContent {
+            background: #fffbe6;
+            color: #232526;
+            border-radius: 20px;
+            box-shadow: 0 8px 40px #00ffe055;
+            text-align: center;
+            padding: 34px 36px;
+        }
+        #endGameContent h2 {
+            font-size: 2.2rem;
+            color: #ffd700;
+            margin-bottom: 18px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 16px #ffd70044;
+        }
+        #endGameContent .score {
+            font-size: 1.4rem;
+            margin-bottom: 16px;
+        }
+        #endGameContent .btn-area {
+            margin-top: 22px;
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+        #endGameContent button, #endGameContent a {
+            background: linear-gradient(145deg, #00ffe0, #00bfa5);
+            color: #232526;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 28px;
+            cursor: pointer;
+            font-size: 1.15rem;
+            box-shadow: 0 5px 18px #00bfa588;
+            transition: background 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+        }
+        #endGameContent button:hover, #endGameContent a:hover {
+            background: linear-gradient(145deg, #00bfa5, #00876d);
+            color: #fff;
+        }
+        /* ปุ่ม Pause */
+        .pause-btn {
+            margin-left: 10px;
+            background: linear-gradient(145deg, #ffd700, #fffbe6);
+            color: #232526;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 10px #ffd70033;
+            transition: background 0.3s;
+        }
+        .pause-btn.paused {
+            background: linear-gradient(145deg, #cccccc, #999999);
+            color: #444;
+        }
+        /* highlight leaderboard button */
+        #openLeaderboardBtn {
+            background: linear-gradient(145deg, #00ffd6, #00c2a8);
+            color: #002422;
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #00bfa5;
+            box-shadow: 0 8px 24px #00bfa533;
+        }
+        /* share modal */
+        .modal { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.45); z-index:1200; }
+        .modal.hidden { display:none }
+        .modal-content { background: linear-gradient(135deg,#0f4750,#134b57); padding:18px; border-radius:12px; color:#fff; text-align:center; box-shadow:0 12px 40px rgba(0,0,0,0.6); }
+        .modal-content img { display:block; margin: 8px auto; border-radius:8px; background:#fff; }
+        .modal-content input { width: 100%; padding:8px 10px; border-radius:8px; border:none; margin-top:8px; font-weight:700 }
+        .modal-actions { display:flex; gap:10px; justify-content:center; margin-top:10px }
+        /* small helper style so anchors look like buttons */
+        .button-like { display:inline-block; background: linear-gradient(145deg, #00ffe0, #00bfa5); color:#000; padding:10px 18px; border-radius:10px; text-decoration:none; font-weight:700; }
+        .button-like:hover { background: linear-gradient(145deg, #00bfa5, #00876d); color:#fff; }
+    </style>
+</head>
+<body>
+<h1>🎯 Reflex The Box</h1>
+<form class="user-form" id="userForm" onsubmit="event.preventDefault();">
+    <label for="playerName">Player Name:</label>
+    <input type="text" id="playerName" maxlength="16" placeholder="Enter your name" autocomplete="off"/>
+</form>
+<div id="gameArea"></div>
+<div id="scoreBoard">Score: 0 | Time left: 30s</div>
+<!-- High score and leaderboard removed as requested -->
+
+<div class="controls">
+    <button id="startBtn">▶ Start Game</button>
+    <button id="pauseBtn" class="pause-btn">⏸ Pause</button>
+    <a id="openLeaderboardBtn" class="button-like" href="leaderboard.html">🏆 Leaderboard</a>
+    <button id="shareBtn">🔗 Share</button>
+    <label>
+        Speed:
+        <select id="speedSelect">
+            <option value="1200">🐢 Slow</option>
+            <option value="800" selected>⚡ Medium</option>
+            <option value="500">🔥 Fast</option>
+        </select>
+    </label>
+    <label>
+        Time:
+        <select id="timeSelect">
+            <option value="15">15s</option>
+            <option value="30" selected>30s</option>
+            <option value="60">60s</option>
+        </select>
+    </label>
+</div>
+<!-- Link to full leaderboard removed -->
+<!-- Popup จบเกม -->
+<div id="endGamePopup">
+    <div id="endGameContent">
+        <h2>Game Over</h2>
+        <div class="score" id="endGameScore"></div>
+        <div class="score" id="endGameRank" style="font-size:1rem;margin-bottom:6px;color:#444;display:none"></div>
+        <div class="btn-area">
+            <button id="restartBtn">🔄 Play Again</button>
+            <a id="viewLeaderboardBtn" class="button-like" href="leaderboard.html">🏆 View Leaderboard</a>
+        </div>
+    </div>
+</div>
+<!-- Share modal -->
+<div id="shareModal" class="modal hidden" aria-hidden="true">
+  <div class="modal-content" role="dialog" aria-modal="true">
+    <h3 style="margin:0 0 6px 0;color:#00ffe0">Share this game</h3>
+    <img id="qrImage" src="" alt="QR code" width="200" height="200" />
+    <input id="shareLink" readonly aria-label="Share link URL" />
+    <div class="modal-actions">
+      <button id="copyShareBtn">Copy Link</button>
+      <a id="downloadBtn" href="#" download="reflex-qrcode.png">Download PNG</a>
+      <button id="closeShareBtn">Close</button>
+    </div>
+  </div>
+</div>
+<audio id="popSound" src="https://freesound.org/data/previews/522/522244_11593235-lq.mp3"></audio>
+<audio id="missSound" src="https://freesound.org/data/previews/341/341695_3248244-lq.mp3"></audio>
+<audio id="goldSound" src="https://freesound.org/data/previews/331/331912_3248244-lq.mp3"></audio>
+<audio id="bombSound" src="https://freesound.org/data/previews/256/256113_3263906-lq.mp3"></audio>
+<script>
+    const gameArea = document.getElementById("gameArea");
+    const scoreBoard = document.getElementById("scoreBoard");
+    const startBtn = document.getElementById("startBtn");
+    const speedSelect = document.getElementById("speedSelect");
+    const timeSelect = document.getElementById("timeSelect");
+    const popSound = document.getElementById("popSound");
+    const missSound = document.getElementById("missSound");
+    const goldSound = document.getElementById("goldSound");
+    const bombSound = document.getElementById("bombSound");
+    const playerNameInput = document.getElementById("playerName");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const endGamePopup = document.getElementById("endGamePopup");
+    const endGameScore = document.getElementById("endGameScore");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let playerName = "Anonymous";
+    let score = 0;
+    let timeLeft = 30;
+    let interval;
+    let boxInterval;
+    let boxSpawnSpeed = parseInt(speedSelect.value);
+    let paused = false;
+    let lastSavedEntryTs = null; // store last saved entry timestamp so we can highlight in leaderboard
+
+    // migrate legacy combined leaderboard (if exists) into per-speed keys
+    function getKeyForSpeed(speed) {
+        return `reflexBoxLeaderboard_${speed}`;
+    }
+    function migrateLegacyIfNeeded() {
+        try {
+            const legacy = localStorage.getItem('reflexBoxLeaderboard');
+            if (!legacy) return;
+            const entries = JSON.parse(legacy || '[]');
+            if (!Array.isArray(entries)) return;
+            const bySpeed = { slow: [], medium: [], fast: [] };
+            entries.forEach(e => {
+                const s = (e && e.speed) ? e.speed : 'medium';
+                const k = ['slow','medium','fast'].includes(s) ? s : 'medium';
+                bySpeed[k].push(e);
+            });
+            // save into per-speed keys (append to existing safe)
+            ['slow','medium','fast'].forEach(s => {
+                const key = getKeyForSpeed(s);
+                const old = JSON.parse(localStorage.getItem(key) || '[]');
+                const merged = Array.isArray(old) ? old.concat(bySpeed[s]) : bySpeed[s];
+                localStorage.setItem(key, JSON.stringify(merged));
+            });
+            // remove legacy
+            localStorage.removeItem('reflexBoxLeaderboard');
+        } catch (e) {
+            console.warn('Leaderboard migration failed', e);
+        }
+    }
+    migrateLegacyIfNeeded();
+
+
+    function saveScore(name, score) {
+        try {
+            const speedKey = getSpeedKey();
+            const entry = {
+                name: (name || 'Anonymous').slice(0, 32),
+                score: Number(score) || 0,
+                ts: Date.now(),
+                speed: speedKey
+            };
+            const key = getKeyForSpeed(speedKey);
+            let lb = JSON.parse(localStorage.getItem(key) || '[]');
+            lb = Array.isArray(lb) ? lb.filter(e => e && typeof e.name === 'string' && typeof e.score === 'number' && !isNaN(e.score)) : [];
+            lb.push(entry);
+            lb.sort((a,b) => (b.score - a.score) || (a.ts - b.ts));
+            localStorage.setItem(key, JSON.stringify(lb));
+            // compute rank for this entry within its speed
+            const idx = lb.findIndex(e => e.ts === entry.ts && e.name === entry.name && e.score === entry.score);
+            lastSavedEntryTs = entry.ts;
+            return { rank: idx >= 0 ? (idx + 1) : -1, ts: entry.ts, speed: speedKey };
+        } catch (e) {
+            console.warn('Failed to save leaderboard', e);
+            return { rank: -1, ts: null, speed: getSpeedKey() };
+        }
+    }
+
+    // reduce volumes for hit sounds (quieter feedback)
+    const HIT_VOLUME = 0.28; // pop/gold/bomb
+    const MISS_VOLUME = 0.14;
+
+    playerNameInput.addEventListener("input", () => {
+        playerName = playerNameInput.value.trim() || "Anonymous";
+    });
+
+    // Map speedSelect value to a stable speed key used for separate leaderboards
+    function getSpeedKey() {
+        const v = parseInt(speedSelect.value, 10);
+        // values: 1200 -> slow, 800 -> medium, 500 -> fast
+        if (v >= 1000) return 'slow';
+        if (v >= 600) return 'medium';
+        return 'fast';
+    }
+
+    function randomPosition(max) {
+        return Math.floor(Math.random() * max);
+    }
+    function updateScore() {
+        scoreBoard.innerText = `Score: ${score} | Time left: ${timeLeft}s`;
+        if (timeLeft <= 5) {
+            scoreBoard.classList.add('time-flash');
+        } else {
+            scoreBoard.classList.remove('time-flash');
+        }
+    }
+    // Explosion Effect
+    function showExplosion(x, y, type="normal") {
+        const explosion = document.createElement("div");
+        explosion.className = "explosion" + (type !== "normal" ? " " + type : "");
+        explosion.style.left = (x-40) + "px";
+        explosion.style.top = (y-40) + "px";
+        gameArea.appendChild(explosion);
+        setTimeout(() => { explosion.remove(); }, 500);
+    }
+    function createBox() {
+        if (paused) return;
+        // สุ่มชนิดกล่อง
+        let boxType = "normal";
+        let rand = Math.random();
+        if (rand < 0.2) boxType = "gold";      // 20% โอกาสเป็นกล่องทอง
+        else if (rand < 0.32) boxType = "bomb"; // 12% โอกาสเป็นกล่องบอมบ์
+
+        const box = document.createElement("div");
+        box.classList.add("box");
+        if (boxType !== "normal") box.classList.add(boxType);
+        box.style.left = randomPosition(gameArea.clientWidth - 60) + "px";
+        box.style.top = randomPosition(gameArea.clientHeight - 60) + "px";
+        gameArea.appendChild(box);
+
+        function doHit(localX, localY) {
+            if (boxType === "gold") {
+                score += 5;
+                goldSound.currentTime = 0;
+                goldSound.volume = HIT_VOLUME;
+                goldSound.play();
+                showExplosion(localX, localY, "gold");
+            } else if (boxType === "bomb") {
+                score -= 3;
+                bombSound.currentTime = 0;
+                bombSound.volume = HIT_VOLUME;
+                bombSound.play();
+                showExplosion(localX, localY, "bomb");
+            } else {
+                score++;
+                popSound.currentTime = 0;
+                popSound.volume = HIT_VOLUME;
+                popSound.play();
+                showExplosion(localX, localY, "normal");
+            }
+            updateScore();
+            box.remove();
+            document.removeEventListener("mousemove", checkHover);
+            box.removeEventListener("touchstart", checkTouch);
+        }
+
+        function checkHover(e) {
+            const rect = box.getBoundingClientRect();
+            const x = e.clientX;
+            const y = e.clientY;
+            if (
+                x >= rect.left && x <= rect.right &&
+                y >= rect.top && y <= rect.bottom
+            ) {
+                doHit(x - gameArea.getBoundingClientRect().left, y - gameArea.getBoundingClientRect().top);
+            }
+        }
+        function checkTouch(e) {
+            if (e.touches.length > 0) {
+                const touch = e.touches[0];
+                const rect = box.getBoundingClientRect();
+                const x = touch.clientX;
+                const y = touch.clientY;
+                if (
+                    x >= rect.left && x <= rect.right &&
+                    y >= rect.top && y <= rect.bottom
+                ) {
+                    doHit(x - gameArea.getBoundingClientRect().left, y - gameArea.getBoundingClientRect().top);
+                }
+            }
+        }
+        document.addEventListener("mousemove", checkHover);
+        box.addEventListener("touchstart", checkTouch);
+
+        setTimeout(() => {
+            if (gameArea.contains(box)) {
+                missSound.currentTime = 0;
+                missSound.volume = MISS_VOLUME;
+                missSound.play();
+                box.remove();
+                document.removeEventListener("mousemove", checkHover);
+                box.removeEventListener("touchstart", checkTouch);
+            }
+        }, boxSpawnSpeed * 1.2);
+    }
+    function showEndGamePopup(score, rank) {
+        endGameScore.innerHTML = `Your Score: <strong>${score}</strong>`;
+        const rankEl = document.getElementById('endGameRank');
+        if (typeof rank === 'number' && rank > 0) {
+            const speedKey = getSpeedKey();
+            rankEl.style.display = 'block';
+            rankEl.innerHTML = `You are <strong>#${rank}</strong> (${speedKey})`;
+        } else {
+            rankEl.style.display = 'none';
+        }
+        endGamePopup.style.display = "flex";
+    }
+    function hideEndGamePopup() {
+        endGamePopup.style.display = "none";
+    }
+    function startGame() {
+        score = 0;
+        boxSpawnSpeed = parseInt(speedSelect.value);
+        timeLeft = parseInt(timeSelect.value);
+        updateScore();
+        hideEndGamePopup();
+
+        startBtn.disabled = true;
+        speedSelect.disabled = true;
+        timeSelect.disabled = true;
+        playerNameInput.disabled = true;
+        pauseBtn.disabled = false;
+        paused = false;
+        pauseBtn.classList.remove("paused");
+        pauseBtn.innerText = "⏸ Pause";
+
+        interval = setInterval(() => {
+            if (!paused) {
+                timeLeft--;
+                updateScore();
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    clearInterval(boxInterval);
+                    startBtn.disabled = false;
+                    speedSelect.disabled = false;
+                    timeSelect.disabled = false;
+                    playerNameInput.disabled = false;
+                    pauseBtn.disabled = true;
+
+                    // Save score to leaderboard and get rank
+                    const saveResult = saveScore(playerName, score);
+                    const playerRank = (saveResult && typeof saveResult.rank === 'number') ? saveResult.rank : -1;
+
+                    showEndGamePopup(score, playerRank);
+                    scoreBoard.classList.remove('time-flash');
+                }
+            }
+        }, 1000);
+
+        boxInterval = setInterval(() => {
+            if (!paused) createBox();
+        }, boxSpawnSpeed);
+    }
+    pauseBtn.addEventListener("click", () => {
+        paused = !paused;
+        pauseBtn.classList.toggle("paused", paused);
+        pauseBtn.innerText = paused ? "▶ Resume" : "⏸ Pause";
+    });
+    restartBtn.addEventListener("click", () => {
+        hideEndGamePopup();
+        startGame();
+    });
+    // add listener for view leaderboard
+    const viewLeaderboardBtn = document.getElementById('viewLeaderboardBtn');
+    if (viewLeaderboardBtn) {
+        viewLeaderboardBtn.addEventListener('click', () => {
+            // pass selected speed key in querystring so leaderboard page can pre-select and filter
+            const speedKey = getSpeedKey();
+            let url = 'leaderboard.html?speed=' + encodeURIComponent(speedKey);
+            if (lastSavedEntryTs) url += '&highlight_ts=' + encodeURIComponent(lastSavedEntryTs);
+            console.log('View Leaderboard clicked, navigating to:', url);
+            window.location.href = url;
+        });
+    }
+
+    // main controls leaderboard button
+    const openLeaderboardBtn = document.getElementById('openLeaderboardBtn');
+    if (openLeaderboardBtn) {
+        openLeaderboardBtn.addEventListener('click', () => {
+            const speedKey = getSpeedKey();
+            const url = 'leaderboard.html?speed=' + encodeURIComponent(speedKey);
+            console.log('Open Leaderboard clicked, navigating to:', url);
+            window.location.href = url;
+        });
+    }
+
+    // if URL has ?speed=slow|medium|fast or ?time=15|30|60 apply to selects on load
+    (function preselectFromQuery() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const s = (params.get('speed') || '').toLowerCase();
+            if (['slow','medium','fast'].includes(s)) {
+                // map to select value
+                const map = { slow: '1200', medium: '800', fast: '500' };
+                speedSelect.value = map[s] || speedSelect.value;
+            }
+            const t = params.get('time');
+            if (t && ['15','30','60'].includes(t)) timeSelect.value = t;
+        } catch (e) {}
+    })();
+
+    // Share modal logic: build QR via Google Chart API (no extra libraries)
+    const shareBtn = document.getElementById('shareBtn');
+    const shareModal = document.getElementById('shareModal');
+    const qrImage = document.getElementById('qrImage');
+    const shareLinkInput = document.getElementById('shareLink');
+    const copyShareBtn = document.getElementById('copyShareBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const closeShareBtn = document.getElementById('closeShareBtn');
+
+    function buildShareUrl() {
+        // share the game page + speed & time params
+        const urlBase = window.location.origin ? (window.location.origin + window.location.pathname) : window.location.href.split('?')[0];
+        const params = new URLSearchParams();
+        params.set('speed', getSpeedKey());
+        params.set('time', String(timeSelect.value || '30'));
+        return urlBase + '?' + params.toString();
+    }
+
+    function showShareModal() {
+        const url = buildShareUrl();
+        const imgSrc = 'https://chart.googleapis.com/chart?cht=qr&chs=300x300&chld=L|1&chl=' + encodeURIComponent(url);
+        qrImage.src = imgSrc;
+        shareLinkInput.value = url;
+        downloadBtn.href = imgSrc;
+        shareModal.classList.remove('hidden');
+        shareModal.setAttribute('aria-hidden','false');
+    }
+
+    function hideShareModal() {
+        shareModal.classList.add('hidden');
+        shareModal.setAttribute('aria-hidden','true');
+    }
+
+    if (shareBtn) shareBtn.addEventListener('click', showShareModal);
+    if (closeShareBtn) closeShareBtn.addEventListener('click', hideShareModal);
+    // copy link
+    if (copyShareBtn) copyShareBtn.addEventListener('click', () => {
+        try {
+            navigator.clipboard.writeText(shareLinkInput.value);
+            copyShareBtn.textContent = 'Copied';
+            setTimeout(() => copyShareBtn.textContent = 'Copy Link', 1200);
+        } catch (e) {
+            shareLinkInput.select(); document.execCommand('copy');
+        }
+    });
+
+    // allow clicking background to close
+    shareModal.addEventListener('click', (e) => { if (e.target === shareModal) hideShareModal(); });
+
+    startBtn.addEventListener("click", startGame);
+    endGamePopup.addEventListener("click", function(e) {
+        if (e.target === endGamePopup) hideEndGamePopup();
+    });
+
+    // helper (hidden) elements to satisfy static analyzer for CSS selectors used dynamically
+    (function(){
+        try {
+            const container = document.createElement('div');
+            container.id = '__css_usage';
+            container.style.display = 'none';
+            container.setAttribute('aria-hidden','true');
+            const classLists = ['time-flash','box','box gold','box bomb','explosion','explosion gold','explosion bomb','pause-btn paused','leaderboard-link'];
+            classLists.forEach(cls => {
+                const d = document.createElement('div');
+                cls.split(' ').forEach(c => { if (c) d.classList.add(c); });
+                container.appendChild(d);
+            });
+            document.body.appendChild(container);
+        } catch (e) {
+            // ignore in environments where DOM not available
+            console.warn('Could not append css-usage helper', e);
+        }
+    })();
+</script>
+</body>
+</html>
